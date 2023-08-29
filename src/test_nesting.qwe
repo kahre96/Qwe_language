@@ -1,0 +1,13 @@
+var a = "global a"
+var b = "global b"
+var c = !true
+{
+  var a = "hej"
+  print a
+  print c
+  {
+    var a = "hejdå"
+    print a
+  }
+}
+print a

@@ -1,0 +1,10 @@
+var h = 5
+var e = 3
+print h+e
+var text = "hello "
+var text2 = "world"
+print text+text2
+var temp = 5
+print temp
+var temp = 7
+print temp
