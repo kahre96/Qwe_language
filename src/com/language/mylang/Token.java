@@ -39,6 +39,8 @@ enum TokenType{
     INTEGER,
     FLOAT,
     BOOL,
+    LIST,
+    CHAR,
 
 
     //RESERVED WORDS

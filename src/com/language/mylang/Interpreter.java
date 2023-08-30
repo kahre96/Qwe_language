@@ -2,6 +2,7 @@ package com.language.mylang;
 
 
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -10,7 +11,8 @@ import java.util.Optional;
 class Interpreter implements Expression.Visitor<Object> {
 
 
-    private Environment environment = new Environment();
+    final Environment global = new Environment();
+    private Environment environment = global;
 
     void interpret (List<ASTNode> ASTNodes){
         try{
@@ -314,7 +316,35 @@ class Interpreter implements Expression.Visitor<Object> {
 
     @Override
     public Object VisitCallExpression(Expression.Call expr) {
-        return ;
+
+        Object callee = evaluate(expr.callee);
+
+        List<Object> arguments = new ArrayList<>();
+
+        for(Expression argument : expr.arguments){
+            arguments.add(evaluate((argument)));
+        }
+
+        if(!(callee instanceof QweCallable function)){
+            throw new RuntimeError(expr.par,"can only call functions"); // and classes later?
+        }
+
+        //want to check arity?
+        if(arguments.size() != function.arity()){
+            throw new RuntimeError(expr.par, "Incorrect amount of params, Expected "
+                    + function.arity() + " but got " + arguments.size());
+        }
+
+
+        return function.call(this,arguments);
+    }
+
+    @Override
+    public Object VisitListExpression(Expression.qweList expr) {
+        for (Expression expression : expr.arguments){
+            evaluate(expression);
+        }
+        return null;
     }
 
     @Override
@@ -323,7 +353,7 @@ class Interpreter implements Expression.Visitor<Object> {
         return null;
     }
 
-    private void executeBlock(List<ASTNode> statements, Environment environment) {
+    void executeBlock(List<ASTNode> statements, Environment environment) {
         Environment previous = this.environment;
 
         // save global env to previous
@@ -372,7 +402,11 @@ class Interpreter implements Expression.Visitor<Object> {
 
     @Override
     public Void visitReturnStatement(ASTNode.Return stmt) {
-        return null;
+        Object value = null;
+
+        if(stmt.value != null) value = evaluate(stmt.value);
+
+        throw new Return(value);
     }
 
     @Override
@@ -396,6 +430,13 @@ class Interpreter implements Expression.Visitor<Object> {
     }
 
     @Override
+    public Object visitFunctionStatement(ASTNode.Function stmt) {
+        QweFunctions function = new QweFunctions(stmt);
+        environment.define(stmt.name.lexeme,function);
+        return null;
+    }
+
+    @Override
     public Object VisitVarExpression(Expression.VarExpression expr) {
         return environment.get(expr.name);
     }
@@ -412,5 +453,32 @@ class Interpreter implements Expression.Visitor<Object> {
 
         return true;
     }
+
+    Interpreter() {
+        global.define("clock", new QweCallable() {
+            @Override
+            public int arity() { return 1; }
+
+            @Override
+            public Object call(Interpreter interpreter,
+                               List<Object> arguments) {
+
+
+                double var = switch ((char) arguments.get(0)) {
+                    case 's' -> 1000.0;
+                    case 'm' -> 1.0;
+                    case 'M' -> 60000;
+                    default -> 0.0;
+                };
+
+                return (double)System.currentTimeMillis() / var;
+
+            }
+
+            @Override
+            public String toString() { return "<native fn>"; }
+        });
+    }
+
 
 }

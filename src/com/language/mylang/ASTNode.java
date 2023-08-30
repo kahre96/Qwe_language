@@ -14,6 +14,7 @@ abstract class ASTNode {
         R visitReturnStatement(Return stmt);
         R visitWhileStatement(While stmt);
         R visitVarStatement(Var stmt);
+        R visitFunctionStatement(Function stmt);
         R VisitVarExpression(Expression.VarExpression expr);
         R VisitBin(Expression.binary expr);
         R VisitUnary(Expression.Unary expr);
@@ -22,6 +23,7 @@ abstract class ASTNode {
         R VisitAssignExpression(Expression.Assign expr);
         R VisitLogicalExpression(Expression.Logical expr);
         R VisitCallExpression(Expression.Call expr);
+        R VisitListExpression(Expression.qweList expr);
 
 
 
@@ -64,9 +66,22 @@ abstract class ASTNode {
     }
     static class Function extends ASTNode {
 
+        final Token name;
+        final List<Token> parameters;
+
+        final List<ASTNode> body;
+
+        Function(Token name, List<Token> parameters, List<ASTNode> body){
+
+            this.body=body;
+            this.parameters = parameters;
+            this.name = name;
+        }
+
+
         @Override
         <R> R accept(Visitor<R> visitor) {
-            return null;
+            return visitor.visitFunctionStatement(this);
         }
     }
     static class If extends ASTNode {
@@ -99,9 +114,19 @@ abstract class ASTNode {
     }
     static class Return extends ASTNode {
 
+        final Token keyword;
+        final Expression value;
+
+        Return(Token keyword, Expression value){
+            this.keyword = keyword;
+            this.value = value;
+        }
+
+
+
         @Override
         <R> R accept(Visitor<R> visitor) {
-            return null;
+            return visitor.visitReturnStatement(this);
         }
     }
     static class Var extends ASTNode {
@@ -120,6 +145,7 @@ abstract class ASTNode {
             return visitor.visitVarStatement(this);
         }
     }
+
     static class While extends ASTNode {
 
         final Expression condition;

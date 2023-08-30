@@ -13,12 +13,12 @@ public class Main {
     public static void main(String[] args) {
 
 
-        /*System.out.println(System.getProperty("user.dir"));
-        try {
-            runfile("src/vartests.qwe");
-        }catch(IOException e){
-            throw new RuntimeException(e);
-        }*/
+//        System.out.println(System.getProperty("user.dir"));
+//        try {
+//            runfile("src/functest.qwe");
+//        }catch(IOException e){
+//            throw new RuntimeException(e);
+//        }
 
         if(args.length > 1){
             System.out.println("To many args?");

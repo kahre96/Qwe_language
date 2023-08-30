@@ -137,7 +137,24 @@ abstract class Expression extends ASTNode {
         <R> R accept(Visitor<R> visitor) {
             return visitor.VisitCallExpression(this);
         }
+    }static class qweList extends  Expression{
+
+
+        final List<Expression> arguments;
+
+        qweList(List<Expression> arguments){
+            this.arguments=arguments;
+
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.VisitListExpression(this);
+        }
     }
+
+
+
 }
 
 

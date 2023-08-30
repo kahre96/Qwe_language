@@ -1,0 +1,11 @@
+fn testfunc(n,m){
+    print m
+    if n<=1:
+        return 1
+    return n*testfunc(n-1,m)
+}
+var before = clock('m')
+var hej = testfunc(27,25)
+var after = clock('m')
+print hej
+print after-before

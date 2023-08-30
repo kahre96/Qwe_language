@@ -40,6 +40,7 @@ public class MyScanner {
 
         switch(c){
             case '"':  handleStrings(); break;
+            case '\'': handleChars(); break;
             case '(': addToken(OPEN_PARENTHESES,c);break;
             case ')': addToken(CLOSE_PARENTASHES,c);break;
             case '[': addToken(OPEN_BRACKET,c);break;
@@ -51,6 +52,7 @@ public class MyScanner {
             case ';': addToken(SEMICOLON,c);break;
             case ':': addToken(COLON,c);break;
             case '*': addToken(MULTIPLY,c);break;
+            case ',': addToken(COMMA,c); break;
             case '=': addToken(match('=') ?   EQUAL_EQUAL : ASSIGN,c);break;
             case '>': addToken(match('=') ?  EQUAL_GREATER : GREATER ,c);break;
             case '<': addToken(match('=') ?  EQUAL_LESSSER : LESSER,c);break;
@@ -98,6 +100,8 @@ public class MyScanner {
 
     }
 
+
+
     private void identifier() {
 
         while(Character.isLetterOrDigit(peek())) current++;
@@ -139,10 +143,18 @@ public class MyScanner {
 
 
     }
+    private void handleChars() {
+        addToken(CHAR,peek());
+        match('\'');
+        current++;
+        current++;
+    }
 
     private void addToken(TokenType type, Object literal) {
         tokens.add(new Token(type,source.substring(start,current),literal,line));
     }
+
+
 
     private boolean match(char expected){
         if(isEnd()){
@@ -187,6 +199,7 @@ public class MyScanner {
         reserved_words.put("false", FALSE);
         reserved_words.put("print", PRINT);
         reserved_words.put("var",VAR);
+        reserved_words.put("List",LIST);
         reserved_words.put("fn", FUNCTION);
 
 

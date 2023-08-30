@@ -71,7 +71,11 @@ class AstPrinter implements ASTNode.Visitor<Void> {
 
     @Override
     public Void visitReturnStatement(ASTNode.Return stmt) {
+        depth++;
+        pad(depth);
         System.out.println("return");
+        stmt.value.accept(this);
+        depth--;
         return null;
     }
 
@@ -87,12 +91,30 @@ class AstPrinter implements ASTNode.Visitor<Void> {
         return null;
     }
 
+
     @Override
     public Void visitVarStatement(ASTNode.Var stmt) {
         depth++;
         pad(depth);
         System.out.println("var " + stmt.name.lexeme);
         stmt.initializer.accept(this);
+        depth--;
+        return null;
+    }
+
+    @Override
+    public Void visitFunctionStatement(ASTNode.Function stmt) {
+        depth++;
+        pad(depth);
+        System.out.println("Fn " + stmt.name.lexeme);
+        depth++;
+        for(ASTNode statement : stmt.body){
+
+            pad(depth);
+            statement.accept(this);
+
+        }
+        depth--;
         depth--;
         return null;
     }
@@ -150,7 +172,11 @@ class AstPrinter implements ASTNode.Visitor<Void> {
 
     @Override
     public Void VisitAssignExpression(Expression.Assign expr) {
-
+        depth++;
+        pad(depth);
+        System.out.println(expr.name.lexeme + " = ");
+        expr.value.accept(this);
+        depth--;
         return null;
     }
 
@@ -164,6 +190,28 @@ class AstPrinter implements ASTNode.Visitor<Void> {
         System.out.println(expr.operator.lexeme);
         expr.right.accept(this);
         depth--;
+        return null;
+    }
+
+    @Override
+    public Void VisitCallExpression(Expression.Call expr) {
+       depth ++;
+       pad(depth);
+       System.out.println("Call");
+       expr.callee.accept(this);
+       depth--;
+       return null;
+    }
+
+    @Override
+    public Void VisitListExpression(Expression.qweList expr) {
+       depth++;
+       pad(depth);
+       System.out.println("List: ");
+       for(Expression exp : expr.arguments){
+           exp.accept(this);
+       }
+       depth--;
         return null;
     }
 

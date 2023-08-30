@@ -27,16 +27,48 @@ public class Parser {
     }
     private ASTNode Declaration(){
         try{
+            if(match(FUNCTION)) return function();
             if(match(VAR)) return varDeclaration();
+
+
+
 
             return statement();
         }catch( ParseError error){
-            synchronize();
+
             return null;
         }
 
 
     }
+
+
+    private ASTNode function() {
+        Token name = consume(IDENTIFIER,"Expect function name");
+
+        List<Token> parameters = new ArrayList<>();
+
+        consume(OPEN_PARENTHESES, "Expect ( after function name");
+        if(!check(CLOSE_PARENTASHES)){
+            do{
+
+
+                parameters.add(consume(IDENTIFIER, "Expected name for parameter"));
+
+
+            }while(match(COMMA));
+
+        }
+
+        consume(CLOSE_PARENTASHES, "Expected )");
+
+        consume(OPEN_BRACE,"Expected { to start function body");
+
+        match(NEWLINE);
+        List<ASTNode> body = block();
+        return new ASTNode.Function(name,parameters,body);
+    }
+
 
     private ASTNode varDeclaration() {
         Token name = consume(IDENTIFIER, "Expects a variable name");
@@ -55,6 +87,7 @@ public class Parser {
     private ASTNode statement() {
         if(match(PRINT)) return printStatement();
         if(match(IF)) return ifStatement();
+        if(match(RETURN)) return returnStatement();
         if(match(WHILE)) return whileStatement();
 
         if(match(OPEN_BRACE)){
@@ -66,6 +99,19 @@ public class Parser {
 
         }
         return expressionStatement();
+    }
+
+    private ASTNode returnStatement() {
+        Token keyword = previous();
+
+        Expression value = null;
+
+        if(!check(NEWLINE)){
+            value= expression();
+        }
+
+        consume(NEWLINE, "Expect newline after return");
+        return new ASTNode.Return(keyword,value);
     }
 
     private ASTNode whileStatement() {
@@ -114,9 +160,7 @@ public class Parser {
         Expression expr = expression();
 
 
-        if(!isAtEnd()){
-            consume(NEWLINE,"Expect newline after expression");
-        }
+        eatLines();
 
         return new ASTNode.Expr(expr);
     }
@@ -124,9 +168,8 @@ public class Parser {
     private ASTNode printStatement(){
         Expression expr = expression();
 
-        if(!isAtEnd()){
-            consume(NEWLINE,"Expect newline after expression");
-        }
+        eatLines();
+
         return new ASTNode.Print(expr);
     }
 
@@ -145,6 +188,9 @@ public class Parser {
 
     private  boolean isAtEnd(){
         return peek().type == EOF;
+    }
+    private void eatLines(){
+        while(!isAtEnd() && match(NEWLINE));
     }
 
     private boolean check(TokenType type) {
@@ -288,13 +334,13 @@ public class Parser {
     private Expression parseCall(Expression call){
         List<Expression> arguments = new ArrayList<>();
 
-        if(check(OPEN_PARENTHESES)){
+        if(!check(CLOSE_PARENTASHES)){
             do{
                 arguments.add(expression());
             } while(match(COMMA));
         }
 
-        Token paren = consume(CLOSE_PARENTASHES,"Expct ) after arguments");
+        Token paren = consume(CLOSE_PARENTASHES,"Expect ) after arguments");
 
         return new Expression.Call(call,paren,arguments);
     }
@@ -304,7 +350,7 @@ public class Parser {
         if(match(TRUE)) return new Expression.Literal(true);
         if(match(NULL)) return new Expression.Literal(null);
 
-        if(match(FLOAT,INTEGER,STRING)){
+        if(match(FLOAT,INTEGER,STRING,CHAR)){
             return new Expression.Literal(previous().literal);
         }
 
@@ -318,8 +364,29 @@ public class Parser {
             consume(CLOSE_PARENTASHES,"Expected ) after expression");
             return new Expression.Grouping(expression);
         }
+
+        if(match(OPEN_BRACKET)){
+            return ListExpression();
+        }
+
         throw error(peek(),"Expected an expression?");
 
+    }
+
+    private Expression ListExpression() {
+
+        var vars = new ArrayList<Expression>();
+
+        while(!isAtEnd() && match(NEWLINE));
+
+        if(!check(CLOSE_BRACKET)){
+            do{
+                vars.add(expression());
+            }while(match(COMMA));
+        }
+        consume(CLOSE_BRACKET, "expect ] to close list");
+        while(!isAtEnd() && match(NEWLINE));
+        return new Expression.qweList(vars);
     }
 
     private Token consume(TokenType tokenType, String message) {
@@ -345,28 +412,5 @@ public class Parser {
         return previous();
     }
 
-    private void synchronize(){
-        advance();
-
-        while(!isAtEnd()){
-
-
-            if(previous().type == NEWLINE) return;
-
-            switch (peek().type) {
-                case IF -> {
-                }
-                case CLASS -> {
-                }
-                case RETURN -> {
-                    return;
-                }
-            }
-
-            advance();
-        }
-
-
-    }
 
 }
